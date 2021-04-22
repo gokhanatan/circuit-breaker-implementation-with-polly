@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -11,6 +12,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using PricingApi.Services.Abstract;
+using PricingApi.Services.Concrete;
 
 namespace PricingApi
 {
@@ -26,7 +29,15 @@ namespace PricingApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddCors(o => o.AddPolicy("MyPolicy", builder =>
+            {
+                builder.AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader();
+            }));
 
+            services.AddHttpClient();
+            services.AddSingleton<IPricingService, PricingService>();
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
@@ -43,6 +54,15 @@ namespace PricingApi
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "PricingApi v1"));
             }
+
+            // app.UseExceptionHandler(builder =>
+            // {
+            //     builder.Run(async context =>
+            //         {
+            //             context.Response.StatusCode = 503;
+            //             await context.Response.WriteAsync("Service is unavailable");
+            //         });
+            // });
 
             app.UseHttpsRedirection();
 
